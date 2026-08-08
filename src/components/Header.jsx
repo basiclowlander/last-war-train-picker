@@ -2,7 +2,7 @@ import React from 'react';
 
 const IS_LOCAL = !import.meta.env.PROD;
 
-export default function Header({ isAdmin, adminName, onAdminToggle }) {
+export default function Header({ isAdmin, adminName, onAdminToggle, onHelp }) {
   return (
     <>
       {IS_LOCAL && (
@@ -16,6 +16,13 @@ export default function Header({ isAdmin, adminName, onAdminToggle }) {
         <p className="text-sm text-gray-400 mt-0.5">Random selection manager</p>
       </div>
       <div className="flex items-center gap-3">
+        <button
+          onClick={onHelp}
+          className="px-3 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+          title="How to use"
+        >
+          ? Help
+        </button>
         {isAdmin && (
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
             Admin: {adminName}
