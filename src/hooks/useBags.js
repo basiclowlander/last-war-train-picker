@@ -42,8 +42,13 @@ export function useBags() {
 
   useEffect(() => {
     Promise.all([loadState(), loadHistory()]).then(([savedState, savedHistory]) => {
+      const rawPersons = savedState?.persons ?? INITIAL_PERSONS;
       setState({
-        persons: savedState?.persons ?? INITIAL_PERSONS,
+        persons: rawPersons.map(p => ({
+          ...p,
+          rank: p.rank ?? 'standard',
+          queuePosition: p.queuePosition ?? 1,
+        })),
         lastPick: savedState?.lastPick ?? null,
         settings: savedState?.settings ?? { r4Days: [2, 3, 4] },
         weeklySession: savedState?.weeklySession ?? { mvpList: [], donorList: [] },
