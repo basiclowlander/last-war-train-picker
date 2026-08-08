@@ -1,13 +1,13 @@
 export const INITIAL_PERSONS = [
-  { id: '1',  name: 'LAN of OZ BRNE',     homeBag: 'conductor' },
-  { id: '2',  name: 'BasicLowlander',     homeBag: 'conductor' },
-  { id: '3',  name: 'General Dogs Jr',    homeBag: 'conductor' },
-  { id: '4',  name: 'GhostRJBR',          homeBag: 'conductor' },
-  { id: '5',  name: 'NoaesAlef0011',      homeBag: 'conductor' },
-  { id: '6',  name: 'Samuel Pio',         homeBag: 'conductor' },
-  { id: '7',  name: 'RamblingChaos',      homeBag: 'conductor' },
-  { id: '8',  name: 'MAJOR CEREALKILLER', homeBag: 'conductor' },
-  { id: '9',  name: 'Pinhead Muppet',     homeBag: 'conductor' },
+  { id: '1',  name: 'LAN of OZ BRNE',     rank: 'r5', queuePosition: 1 },
+  { id: '2',  name: 'BasicLowlander',     rank: 'r4', queuePosition: 2 },
+  { id: '3',  name: 'General Dogs Jr',    rank: 'r4', queuePosition: 3 },
+  { id: '4',  name: 'GhostRJBR',          rank: 'r4', queuePosition: 4 },
+  { id: '5',  name: 'NoaesAlef0011',      rank: 'r4', queuePosition: 5 },
+  { id: '6',  name: 'Samuel Pio',         rank: 'r4', queuePosition: 6 },
+  { id: '7',  name: 'RamblingChaos',      rank: 'r4', queuePosition: 7 },
+  { id: '8',  name: 'MAJOR CEREALKILLER', rank: 'r4', queuePosition: 8 },
+  { id: '9',  name: 'Pinhead Muppet',     rank: 'r4', queuePosition: 9 },
   { id: '10', name: 'Ricardo Foz',        homeBag: 'conductor' },
   { id: '11', name: 'GateCity',           homeBag: 'conductor' },
   { id: '12', name: 'Heart of Black',     homeBag: 'conductor' },
@@ -27,10 +27,10 @@ export const INITIAL_PERSONS = [
   { id: '26', name: 'Chulapa12',          homeBag: 'conductor' },
   { id: '27', name: 'luixxx7',            homeBag: 'conductor' },
   { id: '28', name: 'LucassjM10',         homeBag: 'conductor' },
-  { id: '29', name: 'MarvBR',             homeBag: 'vip' },
-  { id: '30', name: 'Lewipilot10',        homeBag: 'vip' },
-  { id: '31', name: 'Jonas Vieir',        homeBag: 'vip' },
-  { id: '32', name: 'Lenon',              homeBag: 'vip' },
+  { id: '29', name: 'MarvBR',             homeBag: 'conductor' },
+  { id: '30', name: 'Lewipilot10',        homeBag: 'conductor' },
+  { id: '31', name: 'Jonas Vieir',        homeBag: 'conductor' },
+  { id: '32', name: 'Lenon',              homeBag: 'conductor' },
   { id: '33', name: 'd0y',                homeBag: 'vip' },
   { id: '34', name: 'Jorginhooooo',       homeBag: 'vip' },
   { id: '35', name: 'BizocaViajante',     homeBag: 'vip' },
@@ -54,5 +54,9 @@ export const INITIAL_PERSONS = [
   { id: '53', name: 'Panca94',            homeBag: 'vip' },
   { id: '54', name: 'tezeu1',             homeBag: 'vip' },
   { id: '55', name: 'JHOVANNY',           homeBag: 'vip' },
-].map(p => ({ ...p, currentBag: p.homeBag, rank: 'standard', queuePosition: null }));
-
+].map(p => {
+  if (p.rank === 'r4' || p.rank === 'r5') {
+    return { ...p, currentBag: 'conductor', homeBag: null };
+  }
+  return { ...p, currentBag: p.homeBag, rank: 'standard', queuePosition: 1 };
+});

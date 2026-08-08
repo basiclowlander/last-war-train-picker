@@ -13,6 +13,7 @@ import ManualEntryModal from './components/ManualEntryModal';
 import PersonPickerModal from './components/PersonPickerModal';
 import R4Queue from './components/R4Queue';
 import ConfirmWithNoteModal from './components/ConfirmWithNoteModal';
+import HelpModal from './components/HelpModal';
 import { useBags } from './hooks/useBags';
 import { useAdmin } from './hooks/useAdmin';
 
@@ -61,6 +62,7 @@ export default function App() {
   const [rankTarget, setRankTarget] = useState(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [notice, setNotice] = useState('');
 
   const canPickR4 = persons.some(p => (p.rank === 'r4' || p.rank === 'r5') && p.currentBag !== 'inactive');
@@ -148,7 +150,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header isAdmin={isAdmin} adminName={adminName} onAdminToggle={handleAdminToggle} />
+      <Header isAdmin={isAdmin} adminName={adminName} onAdminToggle={handleAdminToggle} onHelp={() => setShowHelp(true)} />
       <ActionBar
         isAdmin={isAdmin}
         canPickR4={canPickR4}
@@ -247,6 +249,7 @@ export default function App() {
           onClose={() => setShowManualEntry(false)}
         />
       )}
+      {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
       {showConfirmSwap && (
         <ConfirmWithNoteModal
           title="Swap Lists"

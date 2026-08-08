@@ -54,6 +54,13 @@ export function useBags() {
     });
   }, []);
 
+  function restoreR4QueuePos(persons, lastPick) {
+    const prev = lastPick?.conductor;
+    if (!prev || (prev.rank !== 'r4' && prev.rank !== 'r5')) return persons;
+    if (!lastPick || !('r4OriginalQueuePos' in lastPick)) return persons;
+    return persons.map(p => p.id === prev.id ? { ...p, queuePosition: lastPick.r4OriginalQueuePos } : p);
+  }
+
   function pickConductor(dayType) {
     if (!state) return { ok: false, skipped: [] };
     snapshot(state);
@@ -70,7 +77,7 @@ export function useBags() {
       const newPersons = state.persons.map(p =>
         p.id === pick.id ? { ...p, queuePosition: maxPos + 1 } : p
       );
-      const newLastPick = { conductor: pick, vip: state.lastPick?.vip ?? null };
+      const newLastPick = { conductor: pick, vip: state.lastPick?.vip ?? null, r4OriginalQueuePos: pick.queuePosition };
       const next = { ...state, persons: newPersons, lastPick: newLastPick };
       setState(next);
       saveState({ persons: next.persons, lastPick: next.lastPick, settings: next.settings, weeklySession: next.weeklySession });
@@ -97,12 +104,13 @@ export function useBags() {
       return { ok: false, skipped, needsOverride: true, reason: 'All MVP options exhausted' };
     }
 
-    const pool = state.persons.filter(p => p.currentBag === 'conductor' && p.rank === 'standard');
+    const basePersons = restoreR4QueuePos(state.persons, state.lastPick);
+    const pool = basePersons.filter(p => p.currentBag === 'conductor' && p.rank === 'standard');
     if (!pool.length) return { ok: false, skipped: [{ name: 'Conductor bag', reason: 'Empty' }] };
 
     const pick = pool[Math.floor(Math.random() * pool.length)];
     const newLastPick = { conductor: pick, vip: state.lastPick?.vip ?? null };
-    const next = { ...state, lastPick: newLastPick };
+    const next = { ...state, persons: basePersons, lastPick: newLastPick };
     setState(next);
     saveState({ persons: next.persons, lastPick: next.lastPick, settings: next.settings, weeklySession: next.weeklySession });
     return { ok: true, skipped: [] };
@@ -355,10 +363,13 @@ export function useBags() {
   function setPickSlot(person, role) {
     if (!state) return;
     snapshot(state);
+    const newPersons = role === 'conductor'
+      ? restoreR4QueuePos(state.persons, state.lastPick)
+      : state.persons;
     const newLastPick = role === 'conductor'
       ? { conductor: person, vip: state.lastPick?.vip ?? null }
       : { conductor: state.lastPick?.conductor ?? null, vip: person };
-    const next = { ...state, lastPick: newLastPick };
+    const next = { ...state, persons: newPersons, lastPick: newLastPick };
     setState(next);
     saveState({ persons: next.persons, lastPick: next.lastPick, settings: next.settings, weeklySession: next.weeklySession });
   }
