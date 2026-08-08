@@ -54,4 +54,5 @@ export const INITIAL_PERSONS = [
   { id: '53', name: 'Panca94',            homeBag: 'vip' },
   { id: '54', name: 'tezeu1',             homeBag: 'vip' },
   { id: '55', name: 'JHOVANNY',           homeBag: 'vip' },
-].map(p => ({ ...p, currentBag: p.homeBag }));
+].map(p => ({ ...p, currentBag: p.homeBag, rank: 'standard', queuePosition: null }));
+

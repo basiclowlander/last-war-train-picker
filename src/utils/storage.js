@@ -1,11 +1,6 @@
-// In production (Vercel) reads/writes go through /api/state and /api/picks → JSONBin.
-// In development (`npm run dev`) localStorage is used so the app works without the API.
-// To test the full API stack locally, run `vercel dev` instead.
 const USE_API = import.meta.env.PROD;
 const LS_STATE_KEY = 'bag-picker-state-v1';
 const LS_HISTORY_KEY = 'bag-picker-history-v1';
-
-// --- State (persons + lastPick) ---
 
 export async function loadState() {
   if (USE_API) {
@@ -42,44 +37,42 @@ export async function saveState(data) {
   } catch {}
 }
 
-// --- History (pick log) ---
-
 export async function loadHistory() {
   if (USE_API) {
     try {
       const res = await fetch('/api/picks');
-      if (!res.ok) return [];
+      if (!res.ok) return { log: [], activityLog: [] };
       const data = await res.json();
-      return data?.log ?? [];
+      return { log: data?.log ?? [], activityLog: data?.activityLog ?? [] };
     } catch {
-      return [];
+      return { log: [], activityLog: [] };
     }
   }
   try {
     const raw = localStorage.getItem(LS_HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return { log: [], activityLog: [] };
+    const data = JSON.parse(raw);
+    return { log: data?.log ?? [], activityLog: data?.activityLog ?? [] };
   } catch {
-    return [];
+    return { log: [], activityLog: [] };
   }
 }
 
-export async function saveHistory(log) {
+export async function saveHistory(log, activityLog = []) {
   if (USE_API) {
     try {
       await fetch('/api/picks', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ log }),
+        body: JSON.stringify({ log, activityLog }),
       });
     } catch {}
     return;
   }
   try {
-    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify(log));
+    localStorage.setItem(LS_HISTORY_KEY, JSON.stringify({ log, activityLog }));
   } catch {}
 }
-
-// --- Admins (read-only from the app — manage directly in JSONBin) ---
 
 export async function loadAdmins() {
   if (USE_API) {
@@ -92,5 +85,5 @@ export async function loadAdmins() {
       return null;
     }
   }
-  return null; // dev falls back to src/data/admins.js
+  return null;
 }

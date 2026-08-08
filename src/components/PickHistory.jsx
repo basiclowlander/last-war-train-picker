@@ -41,19 +41,31 @@ export default function PickHistory({ log }) {
                     <span className="flex items-center gap-1.5">
                       <span className="text-xs font-semibold text-blue-500">Conductor</span>
                       <span className="text-sm text-gray-800">{entry.conductorPick.name}</span>
+                      {entry.conductorNote && (
+                        <span className="text-xs text-gray-400 italic">({entry.conductorNote})</span>
+                      )}
                     </span>
                     <span className="text-gray-200 text-xs hidden sm:inline">|</span>
                     <span className="flex items-center gap-1.5">
                       <span className="text-xs font-semibold text-amber-500">VIP</span>
                       <span className="text-sm text-gray-800">{entry.vipPick.name}</span>
+                      {entry.vipNote && (
+                        <span className="text-xs text-gray-400 italic">({entry.vipNote})</span>
+                      )}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-xs text-gray-400">{formatDate(entry.timestamp)}</span>
                     {entry.adminName && (
                       <>
                         <span className="text-gray-200 text-xs">·</span>
                         <span className="text-xs text-indigo-400 font-medium">{entry.adminName}</span>
+                      </>
+                    )}
+                    {entry.note && (
+                      <>
+                        <span className="text-gray-200 text-xs">·</span>
+                        <span className="text-xs text-gray-500 italic">{entry.note}</span>
                       </>
                     )}
                     {entry.manual && (

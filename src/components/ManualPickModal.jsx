@@ -12,6 +12,8 @@ export default function ManualPickModal({ persons, onSubmit, onClose }) {
   const [conductorId, setConductorId] = useState('');
   const [vipId, setVipId] = useState('');
   const [datetime, setDatetime] = useState(toLocalDatetimeValue(new Date()));
+  const [conductorNote, setConductorNote] = useState('');
+  const [vipNote, setVipNote] = useState('');
   const [error, setError] = useState('');
 
   function bagLabel(p) {
@@ -25,7 +27,7 @@ export default function ManualPickModal({ persons, onSubmit, onClose }) {
     if (!conductorId) { setError('Please select a Conductor.'); return; }
     if (!vipId) { setError('Please select a VIP.'); return; }
     if (!datetime) { setError('Please set a date and time.'); return; }
-    onSubmit(conductorId, vipId, new Date(datetime).toISOString());
+    onSubmit(conductorId, vipId, new Date(datetime).toISOString(), conductorNote, vipNote);
   }
 
   return (
@@ -41,12 +43,12 @@ export default function ManualPickModal({ persons, onSubmit, onClose }) {
             Records a past pick directly to history and moves both people to Used.
           </p>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Conductor</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">Conductor</label>
             <select
               value={conductorId}
               onChange={e => { setConductorId(e.target.value); setError(''); }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">— select —</option>
               {conductors.map(p => (
@@ -55,14 +57,21 @@ export default function ManualPickModal({ persons, onSubmit, onClose }) {
                 </option>
               ))}
             </select>
+            <input
+              type="text"
+              value={conductorNote}
+              onChange={e => setConductorNote(e.target.value)}
+              placeholder="Conductor note (e.g. R4)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">VIP</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">VIP</label>
             <select
               value={vipId}
               onChange={e => { setVipId(e.target.value); setError(''); }}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               <option value="">— select —</option>
               {vips.map(p => (
@@ -71,6 +80,13 @@ export default function ManualPickModal({ persons, onSubmit, onClose }) {
                 </option>
               ))}
             </select>
+            <input
+              type="text"
+              value={vipNote}
+              onChange={e => setVipNote(e.target.value)}
+              placeholder="VIP note (e.g. VS Winner)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
           </div>
 
           <div>
