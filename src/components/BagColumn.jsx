@@ -27,7 +27,7 @@ const BAG_CONFIG = {
   },
 };
 
-function PersonCard({ person, isAdmin, isHighlighted, onMove }) {
+function PersonCard({ person, isAdmin, isHighlighted, onManageBags, onManageRank }) {
   return (
     <div
       className={`bg-white rounded-lg px-3 py-2.5 flex items-center justify-between shadow-sm border transition-all duration-150 ${
@@ -40,19 +40,26 @@ function PersonCard({ person, isAdmin, isHighlighted, onMove }) {
         {person.name}
       </span>
       {isAdmin && (
-        <button
-          onClick={() => onMove(person)}
-          className="text-xs text-gray-300 hover:text-indigo-500 ml-3 flex-shrink-0 transition-colors"
-          title={`Move ${person.name}`}
-        >
-          move
-        </button>
+        <div className="flex items-center gap-2 ml-3 flex-shrink-0">
+          <button
+            onClick={() => onManageBags(person)}
+            className="text-xs text-gray-300 hover:text-indigo-500 transition-colors"
+          >
+            bags
+          </button>
+          <button
+            onClick={() => onManageRank(person)}
+            className="text-xs text-gray-300 hover:text-purple-500 transition-colors"
+          >
+            rank
+          </button>
+        </div>
       )}
     </div>
   );
 }
 
-export default function BagColumn({ bag, persons, isAdmin, highlightIds, onMovePerson }) {
+export default function BagColumn({ bag, persons, isAdmin, highlightIds, onManageBags, onManageRank }) {
   const cfg = BAG_CONFIG[bag];
   const list = persons.filter(p => p.currentBag === bag);
 
@@ -72,7 +79,8 @@ export default function BagColumn({ bag, persons, isAdmin, highlightIds, onMoveP
               person={person}
               isAdmin={isAdmin}
               isHighlighted={highlightIds?.includes(person.id)}
-              onMove={onMovePerson}
+              onManageBags={onManageBags}
+              onManageRank={onManageRank}
             />
           ))
         )}

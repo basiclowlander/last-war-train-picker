@@ -4,46 +4,121 @@ import ActionBar from './components/ActionBar';
 import PickDisplay from './components/PickDisplay';
 import BagsGrid from './components/BagsGrid';
 import PickHistory from './components/PickHistory';
+import ActivityLog from './components/ActivityLog';
 import AdminLoginModal from './components/AdminLoginModal';
-import MovePersonModal from './components/MovePersonModal';
+import ManageRankModal from './components/ManageRankModal';
+import ManageBagsModal from './components/ManageBagsModal';
 import AddPersonModal from './components/AddPersonModal';
-import ManualPickModal from './components/ManualPickModal';
+import ManualEntryModal from './components/ManualEntryModal';
+import PersonPickerModal from './components/PersonPickerModal';
+import R4Queue from './components/R4Queue';
+import ConfirmWithNoteModal from './components/ConfirmWithNoteModal';
 import { useBags } from './hooks/useBags';
 import { useAdmin } from './hooks/useAdmin';
 
+const EMPTY_PICK_RESULT = {
+  conductorSkipped: [],
+  vipSkipped: [],
+  conductorNeedsOverride: false,
+  vipNeedsOverride: false,
+};
+
 export default function App() {
-  const { persons, lastPick, log, isLoading: bagsLoading, pickRandom, markAsUsed, reset, swap, movePerson, addPerson, addManualPick } =
-    useBags();
+  const {
+    persons,
+    lastPick,
+    log,
+    activityLog,
+    settings,
+    weeklySession,
+    isLoading: bagsLoading,
+    pickConductor,
+    pickVip,
+    markAsUsed,
+    swap,
+    movePerson,
+    addPerson,
+    addManualPick,
+    setPickSlot,
+    setRank,
+    updateSettings,
+    reorderR4Queue,
+    canUndo,
+    undo,
+  } = useBags();
+
   const { isAdmin, adminName, isLoading: adminLoading, login, logout } = useAdmin();
 
   const isLoading = bagsLoading || adminLoading;
 
+  const [pickResult, setPickResult] = useState(EMPTY_PICK_RESULT);
+  const [markNote, setMarkNote] = useState('');
+  const [showConfirmSwap, setShowConfirmSwap] = useState(false);
+
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [moveTarget, setMoveTarget] = useState(null);
+  const [personPickerMode, setPersonPickerMode] = useState(null); // 'rank' | 'bags' | null
+  const [bagsTarget, setBagsTarget] = useState(null);
+  const [rankTarget, setRankTarget] = useState(null);
   const [showAddPerson, setShowAddPerson] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [notice, setNotice] = useState('');
 
-  const canPick =
-    persons.some(p => p.currentBag === 'conductor') &&
-    persons.some(p => p.currentBag === 'vip');
+  const canPickR4 = persons.some(p => (p.rank === 'r4' || p.rank === 'r5') && p.currentBag !== 'inactive');
+  const canPickConductor = persons.some(p => p.currentBag === 'conductor' && p.rank === 'standard');
+  const canPickVip = persons.some(p => p.currentBag === 'vip' && p.rank === 'standard');
+  const canMark = !!(lastPick?.conductor && lastPick?.vip);
 
   function showNotice(msg) {
     setNotice(msg);
     setTimeout(() => setNotice(''), 3000);
   }
 
-  function handlePick() {
-    const ok = pickRandom();
-    if (!ok) showNotice('Need at least one person in both Conductor and VIP bags.');
+  function handlePickR4() {
+    const result = pickConductor('r4');
+    if (!result.ok) {
+      setPickResult(prev => ({
+        ...prev,
+        conductorSkipped: result.skipped ?? [],
+        conductorNeedsOverride: result.needsOverride ?? false,
+      }));
+      if (!result.skipped?.length) showNotice('No active R4/R5 members.');
+    } else {
+      setPickResult(prev => ({ ...prev, conductorSkipped: [], conductorNeedsOverride: false }));
+    }
   }
 
-  function handleReset() {
-    if (window.confirm('Reset everyone back to their home bags?')) reset();
+  function handlePickConductor() {
+    const result = pickConductor('random');
+    if (!result.ok) {
+      setPickResult(prev => ({
+        ...prev,
+        conductorSkipped: result.skipped ?? [],
+        conductorNeedsOverride: result.needsOverride ?? false,
+      }));
+      if (!result.skipped?.length) showNotice('No one available for Conductor.');
+    } else {
+      setPickResult(prev => ({ ...prev, conductorSkipped: [], conductorNeedsOverride: false }));
+    }
   }
 
-  function handleSwap() {
-    if (window.confirm('Swap Conductor and VIP lists? This also resets.')) swap();
+  function handlePickVip() {
+    const result = pickVip('random');
+    if (!result.ok) {
+      setPickResult(prev => ({
+        ...prev,
+        vipSkipped: result.skipped ?? [],
+        vipNeedsOverride: result.needsOverride ?? false,
+      }));
+      if (!result.skipped?.length) showNotice('No one available for VIP.');
+    } else {
+      setPickResult(prev => ({ ...prev, vipSkipped: [], vipNeedsOverride: false }));
+    }
+  }
+
+  function handleManualEntry(person, role, note) {
+    setPickSlot(person, role);
+    if (note?.trim()) setMarkNote(note.trim());
+    setShowManualEntry(false);
   }
 
   function handleAdminToggle() {
@@ -76,14 +151,19 @@ export default function App() {
       <Header isAdmin={isAdmin} adminName={adminName} onAdminToggle={handleAdminToggle} />
       <ActionBar
         isAdmin={isAdmin}
-        canPick={canPick}
-        canMark={!!lastPick}
-        onPick={handlePick}
-        onMark={() => markAsUsed(adminName)}
-        onReset={handleReset}
-        onSwap={handleSwap}
-        onAdd={() => setShowAddPerson(true)}
+        canPickR4={canPickR4}
+        canPickConductor={canPickConductor}
+        canPickVip={canPickVip}
+        onPickR4={handlePickR4}
+        onPickConductor={handlePickConductor}
+        onPickVip={handlePickVip}
         onManualEntry={() => setShowManualEntry(true)}
+        onAdd={() => setShowAddPerson(true)}
+        onManageRank={() => setPersonPickerMode('rank')}
+        onManageBags={() => setPersonPickerMode('bags')}
+        onSwap={() => setShowConfirmSwap(true)}
+        canUndo={canUndo}
+        onUndo={undo}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
@@ -93,37 +173,87 @@ export default function App() {
           </div>
         )}
 
-        <PickDisplay lastPick={lastPick} isAdmin={isAdmin} onMark={() => markAsUsed(adminName)} />
+        <PickDisplay
+          lastPick={lastPick}
+          isAdmin={isAdmin}
+          onMark={() => {
+            markAsUsed(adminName, markNote);
+            setMarkNote('');
+            setPickResult(EMPTY_PICK_RESULT);
+          }}
+          pickResult={pickResult}
+          markNote={markNote}
+          onMarkNoteChange={setMarkNote}
+        />
+
+        <R4Queue
+          persons={persons}
+          isAdmin={isAdmin}
+          onManageBags={setBagsTarget}
+          onManageRank={setRankTarget}
+          onReorder={reorderR4Queue}
+        />
+
         <BagsGrid
           persons={persons}
           isAdmin={isAdmin}
           lastPick={lastPick}
-          onMovePerson={setMoveTarget}
+          onManageBags={setBagsTarget}
+          onManageRank={setRankTarget}
         />
         <PickHistory log={log} />
+        <ActivityLog activityLog={activityLog} />
       </main>
 
       {showAdminLogin && (
         <AdminLoginModal onLogin={handleLogin} onClose={() => setShowAdminLogin(false)} />
       )}
-      {moveTarget && (
-        <MovePersonModal
-          person={moveTarget}
-          onMove={movePerson}
-          onClose={() => setMoveTarget(null)}
+      {personPickerMode && (
+        <PersonPickerModal
+          persons={persons}
+          onSelect={p => {
+            if (personPickerMode === 'rank') setRankTarget(p);
+            else setBagsTarget(p);
+            setPersonPickerMode(null);
+          }}
+          onClose={() => setPersonPickerMode(null)}
+        />
+      )}
+      {bagsTarget && (
+        <ManageBagsModal
+          person={bagsTarget}
+          onMove={(id, bag, note) => movePerson(id, bag, note, adminName)}
+          onClose={() => setBagsTarget(null)}
+        />
+      )}
+      {rankTarget && (
+        <ManageRankModal
+          person={rankTarget}
+          persons={persons}
+          onChangeRank={(id, rank, home, note) => setRank(id, rank, home, note, adminName)}
+          onClose={() => setRankTarget(null)}
         />
       )}
       {showAddPerson && (
-        <AddPersonModal onAdd={addPerson} onClose={() => setShowAddPerson(false)} />
+        <AddPersonModal
+          onAdd={(name, bag, rank, note) => addPerson(name, bag, rank, note, adminName)}
+          onClose={() => setShowAddPerson(false)}
+        />
       )}
       {showManualEntry && (
-        <ManualPickModal
+        <ManualEntryModal
           persons={persons}
-          onSubmit={(conductorId, vipId, timestamp) => {
-            addManualPick(conductorId, vipId, adminName, timestamp);
-            setShowManualEntry(false);
-          }}
+          onSubmit={handleManualEntry}
           onClose={() => setShowManualEntry(false)}
+        />
+      )}
+      {showConfirmSwap && (
+        <ConfirmWithNoteModal
+          title="Swap Lists"
+          message="Swap Conductor and VIP lists? This also resets."
+          confirmLabel="Swap"
+          onConfirm={note => { swap(note, adminName); setShowConfirmSwap(false); }}
+          onClose={() => setShowConfirmSwap(false)}
         />
       )}
     </div>

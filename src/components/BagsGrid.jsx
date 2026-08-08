@@ -3,7 +3,9 @@ import BagColumn from './BagColumn';
 
 const BAGS = ['conductor', 'vip', 'used', 'inactive'];
 
-export default function BagsGrid({ persons, isAdmin, lastPick, onMovePerson }) {
+export default function BagsGrid({ persons, isAdmin, lastPick, onManageBags, onManageRank }) {
+  const standardPersons = persons.filter(p => p.rank !== 'r4' && p.rank !== 'r5');
+
   const highlightIds = lastPick
     ? [lastPick.conductor?.id, lastPick.vip?.id].filter(Boolean)
     : [];
@@ -14,10 +16,11 @@ export default function BagsGrid({ persons, isAdmin, lastPick, onMovePerson }) {
         <BagColumn
           key={bag}
           bag={bag}
-          persons={persons}
+          persons={standardPersons}
           isAdmin={isAdmin}
           highlightIds={highlightIds}
-          onMovePerson={onMovePerson}
+          onManageBags={onManageBags}
+          onManageRank={onManageRank}
         />
       ))}
     </div>
